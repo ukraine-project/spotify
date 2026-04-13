@@ -1,0 +1,1034 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Spotifake - Music for everyone.</title>
+    <style>
+        :root {
+            --bg-black: #000000;
+            --bg-dark-gray: #121212;
+            --bg-card: #181818;
+            --bg-card-hover: #282828;
+            --bg-highlight: #2A2A2A;
+            --text-main: #FFFFFF;
+            --text-sub: #A7A7A7;
+            --spotify-green: #1DB954;
+            --spotify-green-hover: #1ED760;
+            --border-color: #727272;
+            --font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: var(--font-family);
+            -webkit-tap-highlight-color: transparent; /* Disable blue flash on mobile */
+        }
+
+        body {
+            background-color: var(--bg-black);
+            color: var(--text-main);
+            height: 100vh;
+            overflow: hidden; /* Prevent body scroll, scroll content area instead */
+            display: flex;
+            flex-direction: column;
+            font-size: 14px;
+        }
+
+        /* --- Utils --- */
+        .hidden { display: none !important; }
+
+        .btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            height: 48px;
+            border-radius: 24px;
+            font-weight: 700;
+            font-size: 15px;
+            cursor: pointer;
+            transition: transform 0.1s;
+            border: none;
+        }
+        .btn:active { transform: scale(0.97); }
+
+        .btn-green {
+            background-color: var(--spotify-green);
+            color: black;
+        }
+
+        .btn-outline {
+            background-color: transparent;
+            color: white;
+            border: 1px solid var(--border-color);
+        }
+        .btn-outline img {
+            width: 20px;
+            margin-right: 12px;
+        }
+
+        input {
+            width: 100%;
+            height: 48px;
+            padding: 0 12px;
+            background-color: #242424;
+            border: 1px solid transparent;
+            border-radius: 4px;
+            color: white;
+            font-size: 14px;
+            margin-bottom: 20px;
+        }
+        input:focus {
+            outline: none;
+            border-color: #535353;
+        }
+
+        .back-arrow {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            width: 24px;
+            height: 24px;
+            cursor: pointer;
+            color: white;
+            font-size: 24px;
+        }
+
+        /* --- Logo Styling (match image_0.png) --- */
+        .logo-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+        .logo-icon {
+            color: var(--spotify-green);
+            font-size: 60px; /* Big note */
+            margin-bottom: 10px;
+        }
+        .logo-text {
+            color: white;
+            font-size: 36px;
+            font-weight: 800;
+            letter-spacing: -1px;
+        }
+        .tagline {
+            color: white;
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 40px;
+        }
+
+        /* ========================================= */
+        /* === 1. Welcome Screen (image_0.png) === */
+        /* ========================================= */
+        #screen-welcome {
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            background: linear-gradient(180deg, rgba(18,18,18,0) 0%, rgba(0,0,0,1) 100%);
+        }
+
+        .auth-buttons-group {
+            width: 100%;
+            max-width: 320px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .login-link-container {
+            margin-top: 30px;
+            color: var(--text-sub);
+            font-size: 13px;
+        }
+        .login-link {
+            color: var(--spotify-green);
+            font-weight: 700;
+            text-decoration: none;
+        }
+
+        /* ======================================== */
+        /* === 2. Sign Up Screen (image_1.png) === */
+        /* ======================================== */
+        #screen-signup, #screen-login {
+            position: relative;
+            height: 100vh;
+            padding: 80px 20px 20px;
+            background-color: var(--bg-dark-gray);
+        }
+
+        .form-header {
+            font-size: 28px;
+            font-weight: 800;
+            margin-bottom: 30px;
+            color: white;
+        }
+
+        .input-label {
+            font-weight: 700;
+            font-size: 16px;
+            color: white;
+            margin-bottom: 8px;
+            display: block;
+        }
+
+        .separator {
+            display: flex;
+            align-items: center;
+            text-align: center;
+            color: var(--text-sub);
+            margin: 30px 0;
+            font-weight: 600;
+            font-size: 12px;
+        }
+        .separator::before, .separator::after {
+            content: '';
+            flex: 1;
+            border-bottom: 1px solid #282828;
+        }
+        .separator:not(:empty)::before { margin-right: .5em; }
+        .separator:not(:empty)::after { margin-left: .5em; }
+
+        /* ========================================== */
+        /* === 3. Profile Setup (image_3.png) === */
+        /* ========================================== */
+        #screen-profile-setup {
+            height: 100vh;
+            padding: 40px 20px;
+            background-color: var(--bg-dark-gray);
+            display: flex;
+            flex-direction: column;
+        }
+        .profile-header {
+            font-size: 28px;
+            font-weight: 800;
+            margin-bottom: 8px;
+            color: white;
+        }
+        .profile-sub-header {
+            color: var(--text-sub);
+            margin-bottom: 40px;
+        }
+        .input-hint {
+            color: var(--text-sub);
+            font-size: 11px;
+            margin-top: -15px;
+            margin-bottom: 30px;
+        }
+
+        /* ========================================== */
+        /* === 4. Artist Selector (image_4.png) === */
+        /* ========================================== */
+        #screen-artist-selector {
+            height: 100vh;
+            padding: 20px;
+            background-color: var(--bg-dark-gray);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .artist-header-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .artist-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            overflow-y: auto;
+            padding-bottom: 100px; /* space for the floating button */
+        }
+
+        .artist-card {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .artist-img-container {
+            width: 100%;
+            aspect-ratio: 1;
+            border-radius: 50%;
+            overflow: hidden;
+            background-color: #333;
+            margin-bottom: 8px;
+            position: relative;
+            border: 2px solid transparent;
+        }
+
+        .artist-img-container img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .artist-name {
+            font-size: 11px;
+            color: white;
+            font-weight: 700;
+        }
+
+        /* Selected State */
+        .artist-card.selected .artist-img-container {
+            border-color: var(--spotify-green);
+        }
+        .artist-card.selected::after {
+            content: '✓';
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            background-color: var(--spotify-green);
+            color: black;
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-size: 14px;
+        }
+
+        .floating-action-container {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            right: 20px;
+            display: flex;
+            justify-content: center;
+        }
+
+        /* ========================================== */
+        /* === 5. Main App Layout (image_5.png) === */
+        /* ========================================== */
+        #screen-main {
+            height: 100vh;
+            display: grid;
+            grid-template-rows: 1fr 60px 80px; /* content, bottom nav, player */
+            background-color: var(--bg-black);
+        }
+
+        /* Main Content Area */
+        .content-area {
+            overflow-y: auto;
+            padding: 20px 16px;
+            display: flex;
+            flex-direction: column;
+            padding-bottom: 20px;
+        }
+
+        .greeting {
+            font-size: 22px;
+            font-weight: 800;
+            color: white;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .settings-icon {
+            font-size: 24px;
+            color: var(--text-sub);
+            cursor: pointer;
+        }
+
+        .section-title {
+            font-size: 18px;
+            font-weight: 800;
+            color: white;
+            margin-top: 30px;
+            margin-bottom: 15px;
+        }
+
+        /* Top Grid (Today's hits, etc) */
+        .top-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 8px;
+        }
+        .grid-item {
+            background-color: var(--bg-highlight);
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            height: 56px;
+            overflow: hidden;
+            cursor: pointer;
+        }
+        .grid-item-img {
+            width: 56px;
+            height: 56px;
+            background-color: #333;
+        }
+        .grid-item-img img { width: 100%; height: 100%; object-fit: cover;}
+        .grid-item-text {
+            color: white;
+            font-weight: 700;
+            font-size: 11px;
+            padding: 0 8px;
+        }
+
+        /* Carousel (Vertical Scroll for now, match photos) */
+        .carousel {
+            display: flex;
+            gap: 16px;
+            overflow-x: auto; /* photos show vertical, but usually carousels are horizontal */
+            padding-bottom: 10px;
+        }
+        /* Temporary to match photos: vertical list of big cards */
+        .photo-list {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .big-card {
+            width: 100%;
+            cursor: pointer;
+        }
+        .big-card-img {
+            width: 100%;
+            aspect-ratio: 1;
+            background-color: #333;
+            border-radius: 4px;
+            margin-bottom: 8px;
+        }
+        .big-card-img img { width: 100%; height: 100%; object-fit: cover; border-radius: 4px;}
+        .big-card-title {
+            font-weight: 700;
+            color: white;
+            font-size: 12px;
+        }
+        .big-card-sub {
+            color: var(--text-sub);
+            font-size: 11px;
+        }
+
+        /* --- Floating Player Bar --- */
+        .player-bar {
+            grid-row: 3;
+            background-color: #121212;
+            border-bottom: 1px solid #282828;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 16px;
+            margin: 0 8px 8px; /* floated effect */
+            border-radius: 8px;
+            height: 56px;
+            position: absolute;
+            bottom: 60px; /* above nav */
+            left: 0; right: 0;
+            z-index: 10;
+        }
+        .np-info { display: flex; align-items: center; gap: 8px; width: 60%; }
+        .np-img { width: 40px; height: 40px; background-color: #333; border-radius: 4px; }
+        .np-img img { width: 100%; height: 100%; object-fit: cover; border-radius: 4px;}
+        .np-text {
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        .np-title { font-weight: 700; color: white; font-size: 12px; white-space: nowrap; }
+        .np-artist { color: var(--text-sub); font-size: 11px; }
+        
+        .player-controls { display: flex; gap: 20px; align-items: center; color: white; font-size: 20px; }
+        .play-pause { font-size: 24px; cursor: pointer;}
+
+        /* --- Bottom Navigation --- */
+        .bottom-nav {
+            grid-row: 2;
+            background: linear-gradient(180deg, rgba(0,0,0,0.8) 0%, rgba(0,0,0,1) 100%);
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            height: 60px;
+            position: absolute;
+            bottom: 0;
+            left: 0; right: 0;
+            z-index: 5;
+        }
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            color: var(--text-sub);
+            text-decoration: none;
+            cursor: pointer;
+            gap: 4px;
+        }
+        .nav-item.active { color: white; }
+        .nav-icon { font-size: 20px; }
+        .nav-label { font-size: 10px; font-weight: 600; }
+
+        /* ============================================ */
+        /* === 6. Search Screen (image_7.png) === */
+        /* ============================================ */
+        .search-bar-container {
+            margin-bottom: 20px;
+        }
+        .search-input-mock {
+            background-color: white;
+            color: #535353;
+            border-radius: 4px;
+            height: 48px;
+            display: flex;
+            align-items: center;
+            padding: 0 12px;
+            font-size: 14px;
+            font-weight: 600;
+        }
+        .search-icon-inline {
+            margin-right: 10px;
+            color: #535353;
+            font-size: 18px;
+        }
+
+        .browse-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 16px;
+        }
+        .browse-card {
+            aspect-ratio: 1.6;
+            border-radius: 8px;
+            padding: 12px;
+            position: relative;
+            overflow: hidden;
+            cursor: pointer;
+        }
+        .browse-card-title {
+            font-size: 16px;
+            font-weight: 800;
+            color: white;
+            width: 60%;
+        }
+        .browse-card-img {
+            position: absolute;
+            width: 60px;
+            height: 60px;
+            background-color: #333;
+            right: -10px;
+            bottom: -5px;
+            transform: rotate(25deg);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+        }
+        .browse-card-img img { width: 100%; height: 100%; object-fit: cover;}
+
+        /* Colors from search screen */
+        .bc-pop { background-color: #8C67AC; }
+        .bc-hiphop { background-color: #BA5D07; }
+        .bc-rock { background-color: #E61E32; }
+        .bc-podcasts { background-color: #27856A; }
+        /* and so on... */
+
+        /* ============================================ */
+        /* === 7. Library Screen (image_8.png) === */
+        /* ============================================ */
+        .library-header {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 20px;
+        }
+        .chip {
+            background-color: #2A2A2A;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 16px;
+            font-size: 11px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+        .chip.active {
+            background-color: var(--spotify-green);
+            color: black;
+        }
+
+        .create-playlist-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 20px;
+            cursor: pointer;
+        }
+        .create-icon-sq {
+            width: 50px; height: 50px;
+            background-color: #2A2A2A;
+            border-radius: 4px;
+            display: flex; align-items: center; justify-content: center;
+            color: var(--text-sub); font-size: 24px;
+        }
+        .create-text { font-weight: 700; color: white; font-size: 13px;}
+
+        .library-list { display: flex; flex-direction: column; gap: 16px; }
+        .lib-item { display: flex; align-items: center; gap: 12px; cursor: pointer;}
+        .lib-img { width: 50px; height: 50px; background-color: #333; border-radius: 4px; }
+        .lib-img img { width: 100%; height: 100%; object-fit: cover; border-radius: 4px;}
+        .lib-img.circle { border-radius: 50%; } /* for artists */
+        .lib-info { display: flex; flex-direction: column; }
+        .lib-title { font-weight: 600; color: white; font-size: 13px; }
+        .lib-sub { color: var(--text-sub); font-size: 11px; }
+
+        /* ============================================ */
+        /* === 8. Settings Screen (New) === */
+        /* ============================================ */
+        #screen-settings {
+            height: 100vh;
+            padding: 20px;
+            background-color: var(--bg-dark-gray);
+            overflow-y: auto;
+        }
+        .settings-header {
+            font-size: 22px; font-weight: 800; color: white; margin-bottom: 30px;
+        }
+        .profile-edit-section {
+            display: flex; flex-direction: column; align-items: center; margin-bottom: 30px; gap: 15px;
+        }
+        #settings-avatar-display {
+            width: 100px; height: 100px; border-radius: 50%; background-color: #333; object-fit: cover;
+        }
+        .settings-options-list {
+            display: flex; flex-direction: column; gap: 10px;
+        }
+        .settings-option {
+            background-color: var(--bg-card);
+            padding: 16px;
+            border-radius: 8px;
+            color: white;
+            font-weight: 600;
+            display: flex; justify-content: space-between; align-items: center;
+            cursor: pointer;
+        }
+        .logout-btn {
+            color: #E61E32; font-weight: 700; text-align: center; margin-top: 40px; cursor: pointer;
+        }
+
+    </style>
+</head>
+<body>
+
+    <section id="screen-welcome">
+        <div class="logo-container">
+            <div class="logo-icon">♫</div>
+            <div class="logo-text">Spotifake</div>
+        </div>
+        <div class="tagline">Music for everyone.</div>
+        
+        <div class="auth-buttons-group">
+            <button class="btn btn-green" onclick="showSignUp()">Sign Up Free</button>
+            <button class="btn btn-outline"><img src="https://upload.wikimedia.org/wikipedia/commons/5/53/Google__G__Logo.svg" alt="G">Continue with Google</button>
+            <button class="btn btn-outline"><img src="https://upload.wikimedia.org/wikipedia/commons/f/fa/Apple_logo_black.svg" alt="A" style="filter:invert(1)">Continue with Apple</button>
+        </div>
+
+        <div class="login-link-container">
+            Already have an account? <a href="#" class="login-link" onclick="showLogin()">Log in</a>
+        </div>
+    </section>
+
+    <section id="screen-signup" class="hidden">
+        <span class="back-arrow" onclick="showWelcome()">←</span>
+        <div class="logo-container" style="margin-top:-40px; margin-bottom:20px;">
+            <div class="logo-icon" style="font-size:30px">♫</div>
+            <div class="logo-text" style="font-size:20px">Spotifake</div>
+        </div>
+        <h1 class="form-header">Sign up for free</h1>
+
+        <label class="input-label">Email address</label>
+        <input type="email" id="signup-email" placeholder="Enter your email">
+
+        <label class="input-label">Create password</label>
+        <input type="password" id="signup-pass" placeholder="Create a password">
+
+        <button class="btn btn-green" onclick="handleSignUp()">Sign Up</button>
+
+        <div class="separator">OR</div>
+
+        <div class="auth-buttons-group">
+            <button class="btn btn-outline"><img src="https://upload.wikimedia.org/wikipedia/commons/5/53/Google__G__Logo.svg" alt="G">Continue with Google</button>
+            <button class="btn btn-outline"><img src="https://upload.wikimedia.org/wikipedia/commons/f/fa/Apple_logo_black.svg" alt="A" style="filter:invert(1)">Continue with Apple</button>
+        </div>
+    </section>
+
+    <section id="screen-login" class="hidden">
+        <span class="back-arrow" onclick="showWelcome()">←</span>
+        <div class="logo-container" style="margin-top:-40px; margin-bottom:20px;">
+            <div class="logo-icon" style="font-size:30px">♫</div>
+            <div class="logo-text" style="font-size:20px">Spotifake</div>
+        </div>
+        <h1 class="form-header">Log in</h1>
+        <label class="input-label">Email</label>
+        <input type="email" id="login-email" placeholder="Email">
+        <label class="input-label">Password</label>
+        <input type="password" id="login-pass" placeholder="Password">
+        <button class="btn btn-green" onclick="handleLogin()">Log In</button>
+    </section>
+
+    <section id="screen-profile-setup" class="hidden">
+        <h1 class="profile-header">Create your profile</h1>
+        <p class="profile-sub-header">What should we call you?</p>
+
+        <label class="input-label">Nickname</label>
+        <input type="text" id="user-nickname" placeholder="Enter a nickname">
+        <p class="input-hint">This will appear on your profile</p>
+
+        <button class="btn btn-green" onclick="handleProfileSetup()">Continue</button>
+    </section>
+
+    <section id="screen-artist-selector" class="hidden">
+        <div class="artist-header-row">
+            <h1 class="profile-header" style="margin:0">Choose your artists</h1>
+            <span style="color:white; font-size:12px; font-weight:600">Skip</span>
+        </div>
+        <p class="profile-sub-header" style="margin-bottom:20px;">Select at least 3 artists you like. We'll use this to personalize your experience.</p>
+        
+        <div class="artist-grid" id="artist-grid-content">
+            </div>
+
+        <div class="floating-action-container hidden" id="artist-continue-btn">
+            <button class="btn btn-green" style="max-width:200px" onclick="finishOnboarding()">Continue</button>
+        </div>
+    </section>
+
+    <section id="screen-main" class="hidden">
+        
+        <div class="content-area" id="main-content-view">
+            
+            <div id="view-home">
+                <div class="greeting">
+                    Good morning
+                    <span class="settings-icon" onclick="showSettings()">⚙</span>
+                </div>
+                
+                <div class="top-grid">
+                    <div class="grid-item" onclick="playMusic('Today\'s Top Hits', 'Spotifake', 'https://charts-images.scdn.co/assets/locale_en/regional/daily/region_global_default.jpg')">
+                        <div class="grid-item-img"><img src="https://charts-images.scdn.co/assets/locale_en/regional/daily/region_global_default.jpg" alt="hits"></div>
+                        <div class="grid-item-text">Today's Top Hits</div>
+                    </div>
+                    <div class="grid-item" onclick="playMusic('RapCaviar', 'Spotifake', 'https://i.scdn.co/image/ab67706f000000028247076410c5e933e4f073b6')">
+                        <div class="grid-item-img"><img src="https://i.scdn.co/image/ab67706f000000028247076410c5e933e4f073b6" alt="rap"></div>
+                        <div class="grid-item-text">RapCaviar</div>
+                    </div>
+                    </div>
+
+                <div class="section-title">Made for <span id="home-username-display">Роман</span></div>
+                <div class="photo-list">
+                    <div class="big-card" onclick="playMusic('Today\'s Top Hits', 'Spotifake', 'https://charts-images.scdn.co/assets/locale_en/regional/daily/region_global_default.jpg')">
+                        <div class="big-card-img"><img src="https://charts-images.scdn.co/assets/locale_en/regional/daily/region_global_default.jpg" alt="hits"></div>
+                        <div class="big-card-title">Today's Top Hits</div>
+                        <div class="big-card-sub">Spotifake</div>
+                    </div>
+                    <div class="big-card" onclick="playMusic('RapCaviar', 'Spotifake', 'https://i.scdn.co/image/ab67706f000000028247076410c5e933e4f073b6')">
+                        <div class="big-card-img"><img src="https://i.scdn.co/image/ab67706f000000028247076410c5e933e4f073b6" alt="rap"></div>
+                        <div class="big-card-title">RapCaviar</div>
+                        <div class="big-card-sub">Spotifake</div>
+                    </div>
+                </div>
+
+                <div class="section-title">Charts</div>
+                <div class="photo-list" style="padding-bottom:100px;"> <div class="big-card">
+                        <div class="big-card-img"><img src="https://charts-images.scdn.co/assets/locale_en/regional/daily/region_us_default.jpg" alt="charts"></div>
+                        <div class="big-card-title">Top 50 - USA</div>
+                        <div class="big-card-sub">Global Chart</div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="view-search" class="hidden">
+                <div class="greeting">Search</div>
+                <div class="search-bar-container">
+                    <div class="search-input-mock">
+                        <span class="search-icon-inline">🔍</span>
+                        What do you want to listen to?
+                    </div>
+                </div>
+                
+                <div class="section-title" style="margin-top:0">Browse all</div>
+                <div class="browse-grid" style="padding-bottom:100px;">
+                    <div class="browse-card bc-pop">
+                        <div class="browse-card-title">Pop</div>
+                        <div class="browse-card-img"><img src="https://i.scdn.co/image/ab67706f000000026e643f8757041c2c366e6b4d" alt="pop"></div>
+                    </div>
+                    <div class="browse-card bc-hiphop">
+                        <div class="browse-card-title">Hip-Hop</div>
+                        <div class="browse-card-img"><img src="https://i.scdn.co/image/ab67706f000000028247076410c5e933e4f073b6" alt="hiphop"></div>
+                    </div>
+                    </div>
+            </div>
+
+            <div id="view-library" class="hidden">
+                <div class="library-header">
+                    <div class="chip active">All</div>
+                    <div class="chip">Playlists</div>
+                    <div class="chip">Artists</div>
+                    <div class="chip">Albums</div>
+                </div>
+
+                <div class="create-playlist-item">
+                    <div class="create-icon-sq">+</div>
+                    <div class="create-text">Create Playlist</div>
+                </div>
+
+                <div class="library-list" style="padding-bottom:100px;">
+                    <div class="lib-item">
+                        <div class="lib-img"><img src="https://i.scdn.co/image/ab67706c0000da8498877197b1373e87062496cc" alt="liked"></div>
+                        <div class="lib-info">
+                            <div class="lib-title">Liked Songs</div>
+                            <div class="lib-sub">Playlist • <span class="lib-username-display">You</span></div>
+                        </div>
+                    </div>
+                    </div>
+            </div>
+
+        </div>
+
+        <div class="player-bar" id="player-bar">
+            <div class="np-info">
+                <div class="np-img" id="player-art"></div>
+                <div class="np-text">
+                    <div class="np-title" id="player-title">Welcome to Spotifake</div>
+                    <div class="np-artist" id="player-artist">Pick a song</div>
+                </div>
+            </div>
+            <div class="player-controls">
+                <span>♡</span>
+                <span class="play-pause" id="player-play-btn" onclick="togglePlay()">▶</span>
+            </div>
+        </div>
+
+        <nav class="bottom-nav">
+            <a href="#" class="nav-item active" onclick="navigateTo('home')">
+                <span class="nav-icon">🏠</span>
+                <span class="nav-label">Home</span>
+            </a>
+            <a href="#" class="nav-item" onclick="navigateTo('search')">
+                <span class="nav-icon">🔍</span>
+                <span class="nav-label">Search</span>
+            </a>
+            <a href="#" class="nav-item" onclick="navigateTo('library')">
+                <span class="nav-icon">📚</span>
+                <span class="nav-label">Your Library</span>
+            </a>
+        </nav>
+    </section>
+
+    <section id="screen-settings" class="hidden">
+        <span class="back-arrow" onclick="hideSettings()">←</span>
+        <h1 class="settings-header">Settings</h1>
+
+        <div class="profile-edit-section">
+            <img src="" alt="Avatar" id="settings-avatar-display">
+            <button class="btn btn-outline" style="max-width:150px; height:36px; font-size:12px;" onclick="triggerAvatarUpload()">Change Photo</button>
+            <input type="file" id="avatar-input" accept="image/*" class="hidden" onchange="handleAvatarChange(this)">
+        </div>
+
+        <div class="settings-options-list">
+            <div class="settings-option" onclick="editNickname()">
+                <span>Nickname</span>
+                <span id="settings-nickname-display" style="color:var(--text-sub)">Роман</span>
+            </div>
+            <div class="settings-option">
+                <span>Email</span>
+                <span id="settings-email-display" style="color:var(--text-sub)">user@example.com</span>
+            </div>
+        </div>
+
+        <div class="logout-btn" onclick="handleLogout()">Log out</div>
+    </section>
+
+    <script>
+        // --- State Management ---
+        let currentUser = null;
+        let isPlaying = false;
+        let selectedArtistsCount = 0;
+
+        // --- Mock Data (matches image_4.png) ---
+        const artistsData = [
+            { name: "The Weeknd", img: "https://i.scdn.co/image/ab6761610000e5ebc69a650099516641b9d4c728" },
+            { name: "Billie Eilish", img: "https://i.scdn.co/image/ab6761610000e5eb7995646194b6e5687796030b" },
+            { name: "Drake", img: "https://i.scdn.co/image/ab6761610000e5eb42933fd3548b5321f5799974" },
+            { name: "Ariana Grande", img: "https://i.scdn.co/image/ab6761610000e5ebcdce930da017f8d689b9d365" },
+            { name: "Post Malone", img: "https://i.scdn.co/image/ab6761610000e5eb66986503c58253a6b5a38260" },
+            { name: "Dua Lipa", img: "https://i.scdn.co/image/ab6761610000e5eb7693952796e68f3a39e948c2" },
+            { name: "Ed Sheeran", img: "https://i.scdn.co/image/ab6761610000e5eb1d2e293046759c25f1873130" },
+            { name: "Taylor Swift", img: "https://i.scdn.co/image/ab6761610000e5ebb50a952613093952796e68f3a3" },
+            { name: "Travis Scott", img: "https://i.scdn.co/image/ab6761610000e5eb1882d499368f3e582e66699a" },
+            { name: "Olivia Rodrigo", img: "https://i.scdn.co/image/ab6761610000e5ebcd854e19504a43f87c5365" },
+            { name: "Bad Bunny", img: "https://i.scdn.co/image/ab6761610000e5eb1d2e293046759c25f1873130" },
+            { name: "SZA", img: "https://i.scdn.co/image/ab6761610000e5ebcdce930da017f8d689b9d365" },
+        ];
+
+        // --- Core UI Management ---
+        const screens = [
+            'screen-welcome', 'screen-signup', 'screen-login', 'screen-profile-setup', 
+            'screen-artist-selector', 'screen-main', 'screen-settings'
+        ];
+
+        function showScreen(screenId) {
+            screens.forEach(s => {
+                document.getElementById(s).classList.add('hidden');
+            });
+            document.getElementById(screenId).classList.remove('hidden');
+        }
+
+        // --- Start Flow (image_0.png) ---
+        function showWelcome() { showScreen('screen-welcome'); }
+        function showSignUp() { showScreen('screen-signup'); }
+        function showLogin() { showScreen('screen-login'); }
+
+        function handleSignUp() {
+            // Mock signup
+            showScreen('screen-profile-setup');
+        }
+
+        function handleLogin() {
+            // Mock login, assuming success
+            loadUserFromStorage();
+            showScreen('screen-main');
+        }
+
+        // --- Profile Setup (image_3.png) ---
+        function handleProfileSetup() {
+            const nickname = document.getElementById('user-nickname').value || "Слухач";
+            currentUser = { nickname: nickname, avatar: 'https://i.scdn.co/image/ab67706c0000da8498877197b1373e87062496cc', email: 'user@example.com' };
+            saveUserToStorage();
+            loadUserToUI();
+            showScreen('screen-artist-selector');
+            renderArtistGrid();
+        }
+
+        // --- Artist Selector (image_4.png) ---
+        function renderArtistGrid() {
+            const grid = document.getElementById('artist-grid-content');
+            grid.innerHTML = '';
+            artistsData.forEach(a => {
+                const card = document.createElement('div');
+                card.className = 'artist-card';
+                card.innerHTML = `
+                    <div class="artist-img-container"><img src="${a.img}" alt="${a.name}"></div>
+                    <div class="artist-name">${a.name}</div>
+                `;
+                card.onclick = () => toggleArtistSelection(card);
+                grid.appendChild(card);
+            });
+        }
+
+        function toggleArtistSelection(card) {
+            card.classList.toggle('selected');
+            selectedArtistsCount = document.querySelectorAll('.artist-card.selected').length;
+            const continueBtn = document.getElementById('artist-continue-btn');
+            
+            if (selectedArtistsCount >= 3) { continueBtn.classList.remove('hidden'); } 
+            else { continueBtn.classList.add('hidden'); }
+        }
+
+        function finishOnboarding() {
+            showScreen('screen-main');
+        }
+
+        // --- Main App Flow (image_5.png) ---
+        function navigateTo(viewId) {
+            const views = ['home', 'search', 'library'];
+            views.forEach(v => {
+                document.getElementById(`view-${v}`).classList.add('hidden');
+            });
+            document.getElementById(`view-${viewId}`).classList.remove('hidden');
+            
+            // Update active nav link
+            document.querySelectorAll('.nav-item').forEach(link => {
+                link.classList.remove('active');
+                if(link.innerText.toLowerCase().includes(viewId)) link.classList.add('active');
+            });
+        }
+
+        // --- Player Logic ---
+        function playMusic(title, artist, artUrl) {
+            document.getElementById('player-title').innerText = title;
+            document.getElementById('player-artist').innerText = artist;
+            document.getElementById('player-art').innerHTML = `<img src="${artUrl}" alt="art">`;
+            isPlaying = true;
+            document.getElementById('player-play-btn').innerText = "⏸";
+        }
+
+        function togglePlay() {
+            isPlaying = !isPlaying;
+            document.getElementById('player-play-btn').innerText = isPlaying ? "⏸" : "▶";
+        }
+
+        // --- Settings / User Management Flow (New) ---
+        function showSettings() { showScreen('screen-settings'); }
+        function hideSettings() { showScreen('screen-main'); }
+
+        function triggerAvatarUpload() {
+            document.getElementById('avatar-input').click();
+        }
+
+        function handleAvatarChange(input) {
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const newAvatar = e.target.result;
+                    currentUser.avatar = newAvatar;
+                    saveUserToStorage();
+                    loadUserToUI();
+                };
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+
+        function editNickname() {
+            const newName = prompt("Введіть нове ім'я:", currentUser.nickname);
+            if(newName && newName.trim() !== "") {
+                currentUser.nickname = newName.trim();
+                saveUserToStorage();
+                loadUserToUI();
+            }
+        }
+
+        function handleLogout() {
+            clearUserFromStorage();
+            showWelcome();
+        }
+
+        // --- Storage Utilities (Mocking Persistence) ---
+        function saveUserToStorage() { localStorage.setItem('spotifakeUser', JSON.stringify(currentUser)); }
+        function loadUserFromStorage() { currentUser = JSON.parse(localStorage.getItem('spotifakeUser')); loadUserToUI();}
+        function clearUserFromStorage() { localStorage.removeItem('spotifakeUser'); currentUser = null; }
+
+        function loadUserToUI() {
+            if (currentUser) {
+                // Update Main
+                document.getElementById('home-username-display').innerText = currentUser.nickname;
+                document.querySelectorAll('.lib-username-display').forEach(el => el.innerText = 'You'); // Keep this, as requested by photos
+
+                // Update Settings
+                document.getElementById('settings-avatar-display').src = currentUser.avatar;
+                document.getElementById('settings-nickname-display').innerText = currentUser.nickname;
+                document.getElementById('settings-email-display').innerText = currentUser.email;
+            }
+        }
+
+        // --- Initialization ---
+        function init() {
+            loadUserFromStorage();
+            if (currentUser) { showScreen('screen-main'); } 
+            else { showWelcome(); }
+        }
+
+        window.onload = init;
+
+    </script>
+</body>
+</html>
